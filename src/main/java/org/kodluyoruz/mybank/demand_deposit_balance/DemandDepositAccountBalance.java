@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.kodluyoruz.mybank.demand_deposit.DemandDepositAccount;
+import org.kodluyoruz.mybank.demand_deposit_balance.dto.DemandDepositAccountDtoReturnBalance;
 
 import javax.persistence.*;
 
@@ -23,7 +24,6 @@ public class DemandDepositAccountBalance {
     private String currency;
     @OneToOne(mappedBy = "balance")
     private DemandDepositAccount demandDepositAccount;
-
     public DemandDepositAccountDtoReturnBalance toDemandDepositAccountDtoReturnBalance() {
         return DemandDepositAccountDtoReturnBalance.builder()
                 .amount(this.amount)

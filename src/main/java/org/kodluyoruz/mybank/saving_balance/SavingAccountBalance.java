@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.kodluyoruz.mybank.saving.SavingAccount;
+import org.kodluyoruz.mybank.saving_balance.dto.SavingAccountDtoReturnBalance;
 
 import javax.persistence.*;
 

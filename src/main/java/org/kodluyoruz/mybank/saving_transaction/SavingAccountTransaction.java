@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.kodluyoruz.mybank.saving.SavingAccount;
+import org.kodluyoruz.mybank.saving_transaction.dto.SavingAccountTransactionDtoReturn;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
@@ -25,12 +26,14 @@ public class SavingAccountTransaction {
 
     private double total;
 
-
-    @ManyToOne
+    @ManyToOne (cascade= {CascadeType.PERSIST, CascadeType.REMOVE})
     @JoinColumn(name = "from_iban", referencedColumnName = "iban")
     private SavingAccount savingAccount;
 
+
     private String toIban;
+
+    private String flowType;
 
     public SavingAccountTransactionDtoReturn toSavingAccountTransactionDtoReturn() {
         return SavingAccountTransactionDtoReturn.builder()

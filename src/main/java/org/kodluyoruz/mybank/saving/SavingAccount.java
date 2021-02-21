@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.kodluyoruz.mybank.customer.Customer;
+import org.kodluyoruz.mybank.saving.dto.SavingAccountDtoReturn;
 import org.kodluyoruz.mybank.saving_balance.SavingAccountBalance;
 import org.kodluyoruz.mybank.saving_transaction.SavingAccountTransaction;
 
@@ -22,11 +23,11 @@ public class SavingAccount {
     @Id
     private String iban;
 
-    @ManyToOne//(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "customerNumber", referencedColumnName = "customerNumber")
     private Customer customer;
 
-    @OneToOne(cascade = CascadeType.ALL) //foreign key burada tutuluyor
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "balance_id", referencedColumnName = "id")
     private SavingAccountBalance balance;
 
@@ -39,6 +40,7 @@ public class SavingAccount {
                 .iban(this.iban)
                 .build();
     }
+
 
 
 }

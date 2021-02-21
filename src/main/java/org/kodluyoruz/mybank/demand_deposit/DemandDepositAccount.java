@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.kodluyoruz.mybank.customer.Customer;
 import org.kodluyoruz.mybank.debit_card.DebitCard;
+import org.kodluyoruz.mybank.demand_deposit.dto.DemandDepositAccountDtoReturn;
 import org.kodluyoruz.mybank.demand_deposit_balance.DemandDepositAccountBalance;
 import org.kodluyoruz.mybank.demand_deposit_transaction.DemandDepositAccountTransaction;
 
@@ -27,9 +28,10 @@ public class DemandDepositAccount {
     @JoinColumn(name = "customerNumber", referencedColumnName = "customerNumber")
     private Customer customer;
 
-    @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER) //foreign key burada tutuluyor
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "balance_id", referencedColumnName = "id")
     private DemandDepositAccountBalance balance;
+
 
     @OneToMany(mappedBy = "demandDepositAccount")
     private List<DemandDepositAccountTransaction> transactions;

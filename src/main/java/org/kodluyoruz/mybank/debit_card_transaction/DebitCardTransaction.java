@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.kodluyoruz.mybank.debit_card.DebitCard;
+import org.kodluyoruz.mybank.debit_card_transaction.dto.DebitCardTransactionDtoReturn;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
@@ -25,11 +26,12 @@ public class DebitCardTransaction {
 
     private double total;
 
-    @ManyToOne
+    @ManyToOne (cascade= {CascadeType.PERSIST, CascadeType.REMOVE})
     @JoinColumn(name = "from_cardNumber", referencedColumnName = "cardNumber")
     private DebitCard debitCard;
 
     private String toIban;
+    private String flowType;
 
     public DebitCardTransactionDtoReturn toDebitCardTransactionDtoReturn() {
         return DebitCardTransactionDtoReturn.builder()

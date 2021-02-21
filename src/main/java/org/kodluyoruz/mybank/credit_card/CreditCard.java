@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
+import org.kodluyoruz.mybank.credit_card.dto.CreditCardDtoReturn;
+import org.kodluyoruz.mybank.credit_card.dto.CreditCardDtoReturnDebt;
 import org.kodluyoruz.mybank.credit_card_transaction.CreditCardTransaction;
 import org.kodluyoruz.mybank.customer.Customer;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -35,7 +37,7 @@ public class CreditCard {
     )
     private Long cardNumber;
 
-    @OneToOne //foreign key burada tutuluyor
+    @OneToOne(fetch = FetchType.LAZY)//(cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @JoinColumn(name = "customer_number", referencedColumnName = "customerNumber")
     private Customer customer;
 
@@ -45,16 +47,19 @@ public class CreditCard {
     @Column(length = 4)
     private int password;
 
-    private double cardLimit;
-
     @OneToMany(mappedBy = "creditCard")
     private List<CreditCardTransaction> creditCardTransactions;
 
     private double debt = 0.0;
 
+    private double cardLimit;
+
+    private int cvv;
+
     public CreditCardDtoReturn toCreditCardDtoReturn() {
         return CreditCardDtoReturn.builder()
                 .cardNumber(this.cardNumber)
+                .cvv(this.cvv)
                 .build();
     }
 

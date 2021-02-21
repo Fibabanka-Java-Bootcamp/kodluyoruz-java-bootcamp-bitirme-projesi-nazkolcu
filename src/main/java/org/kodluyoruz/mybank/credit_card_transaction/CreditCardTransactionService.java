@@ -7,12 +7,13 @@ import org.kodluyoruz.mybank.demand_deposit_balance.DemandDepositAccountBalance;
 import org.kodluyoruz.mybank.demand_deposit_balance.DemandDepositAccountBalanceRepository;
 import org.kodluyoruz.mybank.demand_deposit_transaction.DemandDepositAccountTransaction;
 import org.kodluyoruz.mybank.demand_deposit_transaction.DemandDepositAccountTransactionRepository;
+import org.kodluyoruz.mybank.operations.TransactionOperations;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
 @Service
-public class CreditCardTransactionService {
+public class CreditCardTransactionService extends TransactionOperations {
     private final CreditCardTransactionRepository creditCardTransactionRepository;
     private final DemandDepositAccountBalanceRepository demandDepositAccountBalanceRepository;
     private final DemandDepositAccountTransactionRepository demandDepositAccountTransactionRepository;
@@ -25,89 +26,50 @@ public class CreditCardTransactionService {
         this.creditCardRepository = creditCardRepository;
     }
 
-    //Aynı bankadaki ibana gönder
-    public CreditCardTransaction createS(CreditCard fromCreditCard, DemandDepositAccount toDemandDepositAccount, DemandDepositAccountBalance toBalance, Double total) {
-        CreditCardTransaction transaction1 = new CreditCardTransaction();
-        DemandDepositAccountTransaction transaction2 = new DemandDepositAccountTransaction();
-        LocalDateTime now = LocalDateTime.now();
+    public CreditCardTransaction createS(CreditCard fromCreditCard, DemandDepositAccount toDemandDepositAccount, DemandDepositAccountBalance toBalance, Double fromTotal, Double toTotal) {
+      LocalDateTime now = LocalDateTime.now();
 
-        transaction1.setCreditCard(fromCreditCard);
-        transaction1.setDateTime(now);
-        transaction1.setTotal(-total);
-        transaction1.setToIban(toDemandDepositAccount.getIban());
+        CreditCardTransaction transaction = createCreditCardTransaction(fromCreditCard, now, fromTotal, toDemandDepositAccount.getIban(), "outflow");
 
-        transaction2.setDemandDepositAccount(toDemandDepositAccount);
-        transaction2.setDateTime(now);
-        transaction2.setTotal(total);
-        String cardNumber = String.valueOf(fromCreditCard.getCardNumber());
-        transaction2.setToIban(cardNumber);
+        DemandDepositAccountTransaction transaction2 = createDemandDepositAccountTransaction(toDemandDepositAccount, now, toTotal, String.valueOf(fromCreditCard.getCardNumber()), "inflow");
 
-        double debt = fromCreditCard.getDebt();
-        debt = debt + total;
-        fromCreditCard.setDebt(debt);
-
-
-        double amount = toBalance.getAmount();
-
-        amount = amount + total;
-
-
-        toBalance.setAmount(amount);
+        fromCreditCard.setDebt(calculateInflow(fromCreditCard.getDebt(), fromTotal));
+        toBalance.setAmount(calculateInflow(toBalance.getAmount(), toTotal));
 
         demandDepositAccountBalanceRepository.save(toBalance);
         creditCardRepository.save(fromCreditCard);
 
+        transaction = creditCardTransactionRepository.save(transaction);
+
         demandDepositAccountTransactionRepository.save(transaction2);
 
-
-        return creditCardTransactionRepository.save(transaction1);
-
-    }
-
-
-    public CreditCardTransaction createSAnotherBank(CreditCard fromCreditCard, String toIban, Double total) {
-
-        LocalDateTime now = LocalDateTime.now();
-
-
-        CreditCardTransaction creditCardTransaction = new CreditCardTransaction();
-        creditCardTransaction.setCreditCard(fromCreditCard);
-        creditCardTransaction.setDateTime(now);
-        creditCardTransaction.setTotal(-total);
-        creditCardTransaction.setToIban(toIban);
-
-
-        double debt = fromCreditCard.getDebt();
-        debt = debt + total;
-        fromCreditCard.setDebt(debt);
-
-        creditCardRepository.save(fromCreditCard);
-
-
-        return creditCardTransactionRepository.save(creditCardTransaction);
-
+        return transaction;
 
     }
 
 
+    public CreditCardTransaction createSAnotherBank(CreditCard creditCard, String toIban, Double total) {
 
-    public CreditCardTransaction create(CreditCard creditCard, Double total) {
-        CreditCardTransaction transaction = new CreditCardTransaction();
         LocalDateTime now = LocalDateTime.now();
-        transaction.setCreditCard(creditCard);
-        transaction.setDateTime(now);
-        transaction.setTotal(total);
-        String cardNumber = String.valueOf(creditCard.getCardNumber());
-        transaction.setToIban(cardNumber);
+        CreditCardTransaction creditCardTransaction = createCreditCardTransaction(creditCard,now,total,toIban,"outflow");
 
-
-
-        double debt = creditCard.getDebt();
-        debt = debt - total;
-        creditCard.setDebt(debt);
+        creditCard.setDebt(calculateInflow(creditCard.getDebt(), total));
 
         creditCardRepository.save(creditCard);
 
+        creditCardTransaction = creditCardTransactionRepository.save(creditCardTransaction);
+
+        return creditCardTransaction;
+    }
+
+
+    public CreditCardTransaction create(CreditCard creditCard, Double total) {
+        LocalDateTime now = LocalDateTime.now();
+        CreditCardTransaction transaction = createCreditCardTransaction(creditCard, now, total, String.valueOf(creditCard.getCardNumber()), "inflow");
+
+        creditCard.setDebt(calculateOutflow(creditCard.getDebt(), total));
+
+        creditCardRepository.save(creditCard);
 
         return creditCardTransactionRepository.save(transaction);
 

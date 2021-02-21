@@ -8,6 +8,7 @@ import org.kodluyoruz.mybank.demand_deposit.DemandDepositAccount;
 import org.kodluyoruz.mybank.demand_deposit.DemandDepositAccountRepository;
 import org.kodluyoruz.mybank.demand_deposit_balance.DemandDepositAccountBalance;
 import org.kodluyoruz.mybank.demand_deposit_balance.DemandDepositAccountBalanceRepository;
+import org.kodluyoruz.mybank.operations.TransactionOperations;
 import org.kodluyoruz.mybank.saving.SavingAccount;
 import org.kodluyoruz.mybank.saving_balance.SavingAccountBalance;
 import org.kodluyoruz.mybank.saving_balance.SavingAccountBalanceRepository;
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 @Service
-public class DemandDepositAccountTransactionService {
+public class DemandDepositAccountTransactionService extends TransactionOperations {
     private final DemandDepositAccountTransactionRepository demandDepositAccountTransactionRepository;
     private final DemandDepositAccountRepository demandDepositAccountRepository;
     private final DemandDepositAccountBalanceRepository demandDepositAccountBalanceRepository;
@@ -39,170 +40,64 @@ public class DemandDepositAccountTransactionService {
     }
 
 
-    public DemandDepositAccountTransaction createDDA(DemandDepositAccount fromDemandDepositAccount, DemandDepositAccount toDemandDepositAccount, DemandDepositAccountBalance fromBalance, DemandDepositAccountBalance toBalance, Double total) {
-        DemandDepositAccountTransaction transaction1 = new DemandDepositAccountTransaction();
-        DemandDepositAccountTransaction transaction2 = new DemandDepositAccountTransaction();
+    public DemandDepositAccountTransaction createDDA(DemandDepositAccount fromDemandDepositAccount, DemandDepositAccount toDemandDepositAccount, DemandDepositAccountBalance fromBalance, DemandDepositAccountBalance toBalance, Double fromTotal, Double toTotal) {
         LocalDateTime now = LocalDateTime.now();
-        transaction1.setDemandDepositAccount(fromDemandDepositAccount);
-        transaction1.setDateTime(now);
-        transaction1.setTotal(-total);
-        transaction1.setToIban(toDemandDepositAccount.getIban());
+        DemandDepositAccountTransaction transaction = createDemandDepositAccountTransaction(fromDemandDepositAccount, now, fromTotal, toDemandDepositAccount.getIban(), "outflow");
 
-        transaction2.setDemandDepositAccount(toDemandDepositAccount);
-        transaction2.setDateTime(now);
-        transaction2.setTotal(total);
-        transaction2.setToIban(fromDemandDepositAccount.getIban());
+        DemandDepositAccountTransaction transaction2 = createDemandDepositAccountTransaction(toDemandDepositAccount, now, toTotal, fromDemandDepositAccount.getIban(), "inflow");
 
-        double amount1 = fromBalance.getAmount();
-        double amount2 = toBalance.getAmount();
-
-        amount1 = amount1 - total;
-        amount2 = amount2 + total;
-
-        fromBalance.setAmount(amount1);
-        toBalance.setAmount(amount2);
+        fromBalance.setAmount(calculateOutflow(fromBalance.getAmount(), fromTotal));
+        toBalance.setAmount(calculateInflow(toBalance.getAmount(), toTotal));
 
         demandDepositAccountBalanceRepository.save(toBalance);
         demandDepositAccountBalanceRepository.save(fromBalance);
+
+        transaction = demandDepositAccountTransactionRepository.save(transaction);
         demandDepositAccountTransactionRepository.save(transaction2);
-        return demandDepositAccountTransactionRepository.save(transaction1);
+
+        return transaction;
 
     }
 
-
-    public DemandDepositAccountTransaction createSA(DemandDepositAccount fromDemandDepositAccount, SavingAccount toSavingAccount, DemandDepositAccountBalance fromBalance, SavingAccountBalance toBalance, Double total) {
-        DemandDepositAccountTransaction transaction1 = new DemandDepositAccountTransaction();
-        SavingAccountTransaction transaction2 = new SavingAccountTransaction();
+    public DemandDepositAccountTransaction createSA(DemandDepositAccount fromDemandDepositAccount, SavingAccount toSavingAccount, DemandDepositAccountBalance fromBalance, SavingAccountBalance toBalance, Double fromTotal, Double toTotal) {
         LocalDateTime now = LocalDateTime.now();
-        transaction1.setDemandDepositAccount(fromDemandDepositAccount);
-        transaction1.setDateTime(now);
-        transaction1.setTotal(-total);
-        transaction1.setToIban(toSavingAccount.getIban());
 
-        transaction2.setSavingAccount(toSavingAccount);
-        transaction2.setDateTime(now);
-        transaction2.setTotal(total);
-        transaction2.setToIban(fromDemandDepositAccount.getIban());
+        DemandDepositAccountTransaction transaction = createDemandDepositAccountTransaction(fromDemandDepositAccount, now, fromTotal, toSavingAccount.getIban(), "outflow");
 
-        double amount1 = fromBalance.getAmount();
-        double amount2 = toBalance.getAmount();
 
-        amount1 = amount1 - total;
-        amount2 = amount2 + total;
+        SavingAccountTransaction transaction2 = createSavingAccountTransaction(toSavingAccount, now, toTotal, fromDemandDepositAccount.getIban(), "inflow");
 
-        fromBalance.setAmount(amount1);
-        toBalance.setAmount(amount2);
+        fromBalance.setAmount(calculateOutflow(fromBalance.getAmount(), fromTotal));
+        toBalance.setAmount(calculateInflow(toBalance.getAmount(), toTotal));
 
         savingAccountBalanceRepository.save(toBalance);
         demandDepositAccountBalanceRepository.save(fromBalance);
 
-
+        transaction = demandDepositAccountTransactionRepository.save(transaction);
         savingAccountTransactionRepository.save(transaction2);
 
-        return demandDepositAccountTransactionRepository.save(transaction1);
+        return transaction;
 
     }
 
-
-    public DemandDepositAccountTransaction createCurrencyDDA(DemandDepositAccount fromDemandDepositAccount, DemandDepositAccount toDemandDepositAccount, DemandDepositAccountBalance fromBalance, DemandDepositAccountBalance toBalance, Double fromTotal, Double toTotal) {
-        DemandDepositAccountTransaction transaction1 = new DemandDepositAccountTransaction();
-        DemandDepositAccountTransaction transaction2 = new DemandDepositAccountTransaction();
-        LocalDateTime now = LocalDateTime.now();
-        transaction1.setDemandDepositAccount(fromDemandDepositAccount);
-        transaction1.setDateTime(now);
-        transaction1.setTotal(-fromTotal);
-        transaction1.setToIban(toDemandDepositAccount.getIban());
-
-        transaction2.setDemandDepositAccount(toDemandDepositAccount);
-        transaction2.setDateTime(now);
-        transaction2.setTotal(toTotal);
-        transaction2.setToIban(fromDemandDepositAccount.getIban());
-
-        double amount1 = fromBalance.getAmount();
-        double amount2 = toBalance.getAmount();
-
-        amount1 = amount1 - fromTotal;
-        amount2 = amount2 + toTotal;
-
-        fromBalance.setAmount(amount1);
-        toBalance.setAmount(amount2);
-
-        demandDepositAccountBalanceRepository.save(fromBalance);
-        demandDepositAccountBalanceRepository.save(toBalance);
-
-
-        demandDepositAccountTransactionRepository.save(transaction2);
-
-        return demandDepositAccountTransactionRepository.save(transaction1);
-
-    }
-
-    public DemandDepositAccountTransaction createCurrencySA(DemandDepositAccount fromDemandDepositAccount, SavingAccount toSavingAccount, DemandDepositAccountBalance fromBalance, SavingAccountBalance toBalance, Double fromTotal, Double toTotal) {
-        DemandDepositAccountTransaction transaction1 = new DemandDepositAccountTransaction();
-        SavingAccountTransaction transaction2 = new SavingAccountTransaction();
-        LocalDateTime now = LocalDateTime.now();
-        transaction1.setDemandDepositAccount(fromDemandDepositAccount);
-        transaction1.setDateTime(now);
-        transaction1.setTotal(-fromTotal);
-        transaction1.setToIban(toSavingAccount.getIban());
-
-        transaction2.setSavingAccount(toSavingAccount);
-        transaction2.setDateTime(now);
-        transaction2.setTotal(toTotal);
-        transaction2.setToIban(fromDemandDepositAccount.getIban());
-
-        double amount1 = fromBalance.getAmount();
-        double amount2 = toBalance.getAmount();
-
-        amount1 = amount1 - fromTotal;
-        amount2 = amount2 + toTotal;
-
-        fromBalance.setAmount(amount1);
-        toBalance.setAmount(amount2);
-
-        savingAccountBalanceRepository.save(toBalance);
-        demandDepositAccountBalanceRepository.save(fromBalance);
-
-        savingAccountTransactionRepository.save(transaction2);
-
-        return demandDepositAccountTransactionRepository.save(transaction1);
-
-    }
 
     public DemandDepositAccountTransaction createC(DemandDepositAccount fromDemandDepositAccount, DemandDepositAccountBalance fromBalance, CreditCard toCreditCard, Double debtTotal) {
 
-        // ddabalance , ddatra , cctra , cc güncelle
         LocalDateTime now = LocalDateTime.now();
-        DemandDepositAccountTransaction transaction1 = new DemandDepositAccountTransaction();
-        CreditCardTransaction transaction2 = new CreditCardTransaction();
+        DemandDepositAccountTransaction transaction = createDemandDepositAccountTransaction(fromDemandDepositAccount, now, debtTotal, String.valueOf(toCreditCard.getCardNumber()), "outflow");
 
-        transaction1.setDemandDepositAccount(fromDemandDepositAccount);
-        transaction1.setDateTime(now);
-        transaction1.setTotal(-debtTotal);
-        String cardNumber = String.valueOf(toCreditCard.getCardNumber());
-        transaction1.setToIban(cardNumber);
+        CreditCardTransaction transaction2 = createCreditCardTransaction(toCreditCard, now, debtTotal, fromDemandDepositAccount.getIban(), "inflow");
 
-        transaction2.setCreditCard(toCreditCard);
-        transaction2.setDateTime(now);
-        transaction2.setTotal(debtTotal);
-        transaction2.setToIban(fromDemandDepositAccount.getIban());
-
-        double amount1 = fromBalance.getAmount();
-        double cardDebt = toCreditCard.getDebt();
-
-        amount1 = amount1 - debtTotal;
-        cardDebt = cardDebt - debtTotal;
-
-        fromBalance.setAmount(amount1);
-        toCreditCard.setDebt(cardDebt);
-
+        fromBalance.setAmount(calculateOutflow(fromBalance.getAmount(), debtTotal));
+        toCreditCard.setDebt(calculateInflow(toCreditCard.getDebt(), debtTotal));
 
         demandDepositAccountBalanceRepository.save(fromBalance);
         creditCardRepository.save(toCreditCard);
+
+        transaction = demandDepositAccountTransactionRepository.save(transaction);
         creditCardTransactionRepository.save(transaction2);
 
-
-        return demandDepositAccountTransactionRepository.save(transaction1);
+        return transaction;
 
     }
 

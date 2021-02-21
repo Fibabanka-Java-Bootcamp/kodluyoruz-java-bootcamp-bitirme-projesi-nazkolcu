@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 import org.kodluyoruz.mybank.credit_card.CreditCard;
+import org.kodluyoruz.mybank.customer.dto.CustomerDto;
+import org.kodluyoruz.mybank.customer.dto.CustomerDtoReturn;
 import org.kodluyoruz.mybank.demand_deposit.DemandDepositAccount;
 import org.kodluyoruz.mybank.saving.SavingAccount;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -34,13 +36,13 @@ public class Customer {
     )
     private Long customerNumber;
 
-    @OneToMany(mappedBy = "customer")
+    @OneToMany(cascade = {CascadeType.REMOVE}, mappedBy = "customer")//
     private List<SavingAccount> savingAccounts;
 
-    @OneToMany(mappedBy = "customer")
+    @OneToMany(cascade = {CascadeType.REMOVE}, mappedBy = "customer")
     private List<DemandDepositAccount> demandDepositAccounts;
 
-    @OneToOne(mappedBy = "customer")
+    @OneToOne(cascade = {CascadeType.REMOVE}, mappedBy = "customer")
     private CreditCard creditCard;
 
     private String name;
@@ -52,6 +54,16 @@ public class Customer {
 
     public String tckn;
 
+    @Override
+    public String toString() {
+        return "Customer{" +
+                "customerNumber=" + customerNumber +
+                ", name='" + name + '\'' +
+                ", surname='" + surname + '\'' +
+                ", birthDate=" + birthDate +
+                ", tckn='" + tckn + '\'' +
+                '}';
+    }
 
     public CustomerDto toCustomerDto() {
         return CustomerDto.builder()

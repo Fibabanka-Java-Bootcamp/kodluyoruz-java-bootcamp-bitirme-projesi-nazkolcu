@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.kodluyoruz.mybank.credit_card.CreditCard;
+import org.kodluyoruz.mybank.credit_card_transaction.dto.CreditCardTransactionDtoReturn;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
@@ -28,13 +29,12 @@ public class CreditCardTransaction {
     @Expose
     private double total;
 
-    @ManyToOne
+    @ManyToOne (cascade= {CascadeType.PERSIST, CascadeType.REMOVE})
     @JoinColumn(name = "from_cardNumber", referencedColumnName = "cardNumber")
     private CreditCard creditCard;
-
     @Expose
     private String toIban;
-
+    private String flowType;
 
     public CreditCardTransactionDtoReturn toCreditCardTransactionDtoReturn() {
         return CreditCardTransactionDtoReturn.builder()
@@ -42,4 +42,5 @@ public class CreditCardTransaction {
                 .total(this.total)
                 .build();
     }
+
 }

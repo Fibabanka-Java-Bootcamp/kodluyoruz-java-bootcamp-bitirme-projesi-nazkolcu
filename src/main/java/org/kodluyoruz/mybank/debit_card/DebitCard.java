@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
+import org.kodluyoruz.mybank.debit_card.dto.DebitCardDtoReturn;
 import org.kodluyoruz.mybank.debit_card_transaction.DebitCardTransaction;
 import org.kodluyoruz.mybank.demand_deposit.DemandDepositAccount;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -34,7 +35,7 @@ public class DebitCard {
     )
     private Long cardNumber;
 
-    @OneToOne
+    @OneToOne (cascade= {CascadeType.PERSIST, CascadeType.REMOVE}) //foreign key burada tutuluyor
     @JoinColumn(name = "account_iban", referencedColumnName = "iban")
     private DemandDepositAccount demandDepositAccount;
 
@@ -44,6 +45,7 @@ public class DebitCard {
     @Column(length = 4)
     private int password;
 
+    private int cvv;
 
     @OneToMany(mappedBy = "debitCard")
     private List<DebitCardTransaction> debitCardTransactions;
@@ -52,6 +54,7 @@ public class DebitCard {
     public DebitCardDtoReturn toDebitCardDtoReturn() {
         return DebitCardDtoReturn.builder()
                 .cardNumber(this.cardNumber)
+                .cvv(this.cvv)
                 .build();
     }
 }

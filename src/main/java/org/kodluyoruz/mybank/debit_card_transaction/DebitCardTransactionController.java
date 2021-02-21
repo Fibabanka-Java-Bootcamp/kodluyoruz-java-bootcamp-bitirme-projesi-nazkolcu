@@ -3,9 +3,15 @@ package org.kodluyoruz.mybank.debit_card_transaction;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.kodluyoruz.mybank.debit_card.DebitCard;
 import org.kodluyoruz.mybank.debit_card.DebitCardRepository;
+import org.kodluyoruz.mybank.debit_card_transaction.dto.DebitCardTransactionDto;
+import org.kodluyoruz.mybank.debit_card_transaction.dto.DebitCardTransactionDtoReturn;
+import org.kodluyoruz.mybank.debit_card_transaction.dto.DebitCardTransactionDtoWithoutIban;
 import org.kodluyoruz.mybank.demand_deposit.DemandDepositAccount;
 import org.kodluyoruz.mybank.demand_deposit.DemandDepositAccountRepository;
 import org.kodluyoruz.mybank.demand_deposit_balance.DemandDepositAccountBalance;
+import org.kodluyoruz.mybank.operations.TransactionOperations;
+import org.kodluyoruz.mybank.rest_template.RestTemplateRoot;
+import org.kodluyoruz.mybank.validations.AccountValidation;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -18,7 +24,7 @@ import java.time.LocalDate;
 @Validated
 @RestController
 @RequestMapping("/api/transaction/debitcard")
-public class DebitCardTransactionController {
+public class DebitCardTransactionController extends TransactionOperations implements AccountValidation {
     private final DebitCardTransactionService debitCardTransactionService;
     private final DebitCardRepository debitCardRepository;
     private final RestTemplate restTemplate_doviz;
@@ -31,13 +37,24 @@ public class DebitCardTransactionController {
         this.demandDepositAccountRepository = demandDepositAccountRepository;
     }
 
-    @PostMapping("/toshoppingiban/{fromcardNumber}")
+    @PostMapping("/shopping/{fromcardNumber}")
     @ResponseStatus(HttpStatus.CREATED)
     public DebitCardTransactionDtoReturn transactToS(@RequestBody DebitCardTransactionDto debitCardTransactionDto, @PathVariable("fromcardNumber") Long fromCardNumber) throws JsonProcessingException {
         String toIban = debitCardTransactionDto.getToIban();
         int password = debitCardTransactionDto.getPassword();
+        int cvc = debitCardTransactionDto.getCvc();
         DebitCard fromDebitCard = debitCardRepository.findByCardNumber(fromCardNumber);
-        double total = debitCardTransactionDto.getTotal();
+
+        double total = 0.0;
+
+        if (checkMoneyFormat(debitCardTransactionDto.getTotal())) {
+            total = adjustStringToDouble(debitCardTransactionDto.getTotal());
+            total = adjustDoubleDigit(total, 2);
+
+        } else
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Money format not correct : " + debitCardTransactionDto.getTotal() + " Format should be like : 1.234,56");
+        checkTotalForZero(total);
+
         if (fromDebitCard != null) {
             LocalDate now = LocalDate.now();
 
@@ -46,22 +63,45 @@ public class DebitCardTransactionController {
                 DemandDepositAccountBalance fromBalance = fromDemandDepositAccount.getBalance();
 
                 if (password == fromDebitCard.getPassword()) {
-                    if (fromBalance.getAmount() > total) {
-                        DemandDepositAccount toDemandDepositAccount = demandDepositAccountRepository.findByIbanAndBalance_Currency(toIban, "TRY");
+                    if (cvc == fromDebitCard.getCvv()) {
+                        if (fromBalance.getAmount() >= total) {
+                            if (checkIban(toIban)) {
+                                DemandDepositAccount toDemandDepositAccount = demandDepositAccountRepository.findByIban(toIban);
 
-                        if (toDemandDepositAccount != null)
-                        {
-                            DemandDepositAccountBalance toBalance = toDemandDepositAccount.getBalance();
+                                if (toDemandDepositAccount != null) {
 
+                                    if (toDemandDepositAccount.getCustomer() != fromDebitCard.getDemandDepositAccount().getCustomer()) {
+                                        DemandDepositAccountBalance toBalance = toDemandDepositAccount.getBalance();
+                                        String toCurrency = toBalance.getCurrency();
+                                        double fromTotal = total, toTotal = total;
+                                        String fromCurrency = fromBalance.getCurrency();
 
-                            return debitCardTransactionService.createS(fromDebitCard, fromDemandDepositAccount, toDemandDepositAccount, fromBalance, toBalance, total).toDebitCardTransactionDtoReturn();
+                                        if (toCurrency.equals(fromCurrency)) {
+
+                                            return debitCardTransactionService.createS(fromDebitCard, fromDemandDepositAccount, toDemandDepositAccount, fromBalance, toBalance, fromTotal, toTotal).toDebitCardTransactionDtoReturn();
+                                        } else {
+
+                                            RestTemplateRoot root = getSpecificCurrency(restTemplate_doviz, fromCurrency, toCurrency);//  RestTemplateRoot root = restTemplate_doviz.getForObject("/latest?symbols=" + toCurrency + "&base=" + fromCurrency, RestTemplateRoot.class);
+                                            double coefficient = getCurrencyCoefficient(root, toCurrency);
+                                            coefficient = adjustDoubleDigit(coefficient, 4);
+                                            toTotal = total * coefficient;
+                                            toTotal = adjustDoubleDigit(toTotal, 2);
+                                            return debitCardTransactionService.createS(fromDebitCard, fromDemandDepositAccount, toDemandDepositAccount, fromBalance, toBalance, fromTotal, toTotal).toDebitCardTransactionDtoReturn();
+
+                                        }
+
+                                    } else
+                                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You can not use this IBAN : " + toIban);
+                                } else {
+                                    return debitCardTransactionService.createSAnotherBank(fromDebitCard, fromDemandDepositAccount, toIban, fromBalance, total).toDebitCardTransactionDtoReturn();
+                                }
+
+                            } else
+                                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "IBAN format not correct : " + toIban);
                         } else
-                        {
-                            return debitCardTransactionService.createSAnotherBank(fromDebitCard, fromDemandDepositAccount, toIban, fromBalance, total).toDebitCardTransactionDtoReturn();
-                        }
-
+                            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The balance of this account is insufficient : " + fromDemandDepositAccount.getIban());
                     } else
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The balance of this account is insufficient : " + fromDemandDepositAccount.getIban());
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debit Card cvc is wrong : " + fromCardNumber);
 
                 } else
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debit Card password is wrong : " + fromCardNumber);
@@ -70,7 +110,9 @@ public class DebitCardTransactionController {
 
 
         } else
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debit Card not found with this card number : " + fromCardNumber);
+            throw new
+
+                    ResponseStatusException(HttpStatus.BAD_REQUEST, "Debit Card not found with this card number : " + fromCardNumber);
 
     }
 
@@ -78,8 +120,20 @@ public class DebitCardTransactionController {
     @PostMapping("/depositcashtoatm/{fromcardNumber}")
     @ResponseStatus(HttpStatus.CREATED)
     public DebitCardTransactionDtoReturn transactToDDA(@RequestBody DebitCardTransactionDtoWithoutIban debitCardTransactionDtoWithoutIban, @PathVariable("fromcardNumber") Long fromCardNumber) throws JsonProcessingException {
-        double total = debitCardTransactionDtoWithoutIban.getTotal();
+
         int password = debitCardTransactionDtoWithoutIban.getPassword();
+        double total = 0.0;
+
+
+        if (checkMoneyFormat(debitCardTransactionDtoWithoutIban.getTotal())) {
+            total = adjustStringToDouble(debitCardTransactionDtoWithoutIban.getTotal());
+            total = adjustDoubleDigit(total, 2);
+
+        } else
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Money format not correct : " + debitCardTransactionDtoWithoutIban.getTotal() + " Format should be like : 1.234,56");
+
+
+        checkTotalForZero(total);
         DebitCard fromDebitCard = debitCardRepository.findByCardNumber(fromCardNumber);
         if (fromDebitCard != null) {
             LocalDate now = LocalDate.now();
