@@ -1,6 +1,6 @@
 # Fibabanka Java Bootcamp Bitirme Projesi
 
-![logo](C:\Users\NazKolcu\Desktop\sunum\logo.png)
+![logo](logo.png)
 
 Online bankacılık sisteminin backend servislerini içeren proje, JAVA 8 ile implemente edildi. Spring Boot, Spring MVC ve JPA kullanılarak geliştirildi.
 
@@ -10,7 +10,7 @@ Temel olarak bankacılık mantığının anlayıp, teknik olarak ise beklenen fo
 
 
 
-![myBank (son hali)](C:\Users\NazKolcu\Desktop\sunum\myBank (son hali).png)
+![myBank (son hali)](myBank (son hali).png)
 
 
 
