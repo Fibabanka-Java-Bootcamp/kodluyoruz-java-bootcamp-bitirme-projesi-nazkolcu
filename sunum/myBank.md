@@ -10,7 +10,7 @@ Temel olarak bankacılık mantığının anlayıp, teknik olarak ise beklenen fo
 
 
 
-![myBank (son hali)](myBankER.png.png)
+![myBank ER Diagram](myBankER.png)
 
 
 
