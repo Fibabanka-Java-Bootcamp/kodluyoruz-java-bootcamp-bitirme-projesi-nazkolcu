@@ -13,15 +13,14 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CustomerDto {
+public class CustomerDtoWithoutTckn {
     @NotBlank(message = "Name for the customer is mandatory")
     private String name;
     @NotBlank(message = "Surname for the customer is mandatory")
     private String surname;
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private LocalDate birthDate;
-    @Size(min = 11, max = 11)
-    private String tckn;
+
 
     public Customer toCustomer() {
         return Customer.builder()

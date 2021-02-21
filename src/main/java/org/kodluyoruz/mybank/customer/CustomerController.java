@@ -3,6 +3,7 @@ package org.kodluyoruz.mybank.customer;
 import org.kodluyoruz.mybank.credit_card.CreditCard;
 import org.kodluyoruz.mybank.customer.dto.CustomerDto;
 import org.kodluyoruz.mybank.customer.dto.CustomerDtoReturn;
+import org.kodluyoruz.mybank.customer.dto.CustomerDtoWithoutTckn;
 import org.kodluyoruz.mybank.demand_deposit.DemandDepositAccount;
 import org.kodluyoruz.mybank.demand_deposit.DemandDepositAccountRepository;
 import org.kodluyoruz.mybank.saving.SavingAccount;
@@ -48,14 +49,13 @@ public class CustomerController implements CustomerValidation {
 
     @PutMapping("/{customerNumber}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Optional<Customer> replaceCustomer(@Valid @RequestBody CustomerDto customerDto, @PathVariable("customerNumber") Long customerNumber) {
+    public Optional<Customer> replaceCustomer(@Valid @RequestBody CustomerDtoWithoutTckn CustomerDtoWithoutTckn, @PathVariable("customerNumber") Long customerNumber) {
 
         return customerService.get(customerNumber)
                 .map(customer -> {
-                    customer.setName(adjustNameAndSurname(customerDto.getName()));
-                    customer.setSurname(adjustNameAndSurname(customerDto.getSurname()));
-                    customer.setBirthDate(customerDto.getBirthDate());
-                    customer.setTckn(customerDto.getTckn());
+                    customer.setName(adjustNameAndSurname(CustomerDtoWithoutTckn.getName()));
+                    customer.setSurname(adjustNameAndSurname(CustomerDtoWithoutTckn.getSurname()));
+                    customer.setBirthDate(CustomerDtoWithoutTckn.getBirthDate());
                     return customerService.update(customer);
                 });
     }

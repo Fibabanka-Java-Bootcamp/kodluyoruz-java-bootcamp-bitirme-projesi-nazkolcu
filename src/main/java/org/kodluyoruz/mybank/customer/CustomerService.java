@@ -116,11 +116,9 @@ public class CustomerService implements CustomerValidation {
     public Customer update(Customer customer) {
         if (checkCustomerName(customer.getName())) {
             if (checkCustomerSurname(customer.getSurname())) {
-                if (checkCustomerTckn(customer.getTckn())) {
+
                     return customerRepository.save(customer);
-                } else
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid TCKN : " + customer.getTckn() + " TCKN must include only numeric characters");
-            } else
+           } else
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid surname : " + customer.getSurname() + " Surname must include only alphabetic characters and \".\",\"'\",\"-\"");
         } else
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid name : " + customer.getName() + " Name  must include only alphabetic characters and \".\",\"'\",\"-\"");
