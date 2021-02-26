@@ -56,7 +56,7 @@ public class SavingAccountTransactionController extends TransactionOperations {
 
             SavingAccount fromSavingAccount = savingAccountRepository.findByIban(fromIban);
             if (fromSavingAccount != null) {
-
+                if (fromSavingAccount.getCustomer() == toDemandDepositAccount.getCustomer()) {
                 DemandDepositAccountBalance toBalance = toDemandDepositAccount.getBalance();
                 SavingAccountBalance fromBalance = fromSavingAccount.getBalance();
                 if (fromBalance.getAmount() >= total) {
@@ -81,6 +81,8 @@ public class SavingAccountTransactionController extends TransactionOperations {
                     }
                 } else
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The balance of this account is insufficient : " + fromIban);
+            } else
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Customer of these accounts are not the same" );
 
             } else
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Saving Account not found with this IBAN : " + fromIban);
