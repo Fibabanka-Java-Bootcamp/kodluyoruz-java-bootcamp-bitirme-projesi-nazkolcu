@@ -6,8 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 import org.kodluyoruz.mybank.debit_card.dto.DebitCardDtoReturn;
+import org.kodluyoruz.mybank.debit_card.dto.DebitCardDtoWithBalance;
 import org.kodluyoruz.mybank.debit_card_transaction.DebitCardTransaction;
 import org.kodluyoruz.mybank.demand_deposit.DemandDepositAccount;
+import org.kodluyoruz.mybank.demand_deposit.dto.DemandDepositAccountDtoWithBalance;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
@@ -35,7 +37,7 @@ public class DebitCard {
     )
     private Long cardNumber;
 
-    @OneToOne (cascade= {CascadeType.PERSIST, CascadeType.REMOVE}) //foreign key burada tutuluyor
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}) //foreign key burada tutuluyor
     @JoinColumn(name = "account_iban", referencedColumnName = "iban")
     private DemandDepositAccount demandDepositAccount;
 
@@ -56,5 +58,16 @@ public class DebitCard {
                 .cardNumber(this.cardNumber)
                 .cvv(this.cvv)
                 .build();
+    }
+
+    public DebitCardDtoWithBalance toDebitCardDtoWithBalance() {
+        return DebitCardDtoWithBalance.builder()
+                .cardNumber(this.cardNumber)
+                .cvv(this.cvv)
+                .expirationDate(this.expirationDate)
+                .password(this.password)
+                .amount(this.getDemandDepositAccount().getBalance().getAmount())
+                .currency(this.getDemandDepositAccount().getBalance().getCurrency()).build();
+
     }
 }

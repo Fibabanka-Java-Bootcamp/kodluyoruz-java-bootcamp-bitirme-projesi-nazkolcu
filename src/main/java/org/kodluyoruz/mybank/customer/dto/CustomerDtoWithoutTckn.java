@@ -27,7 +27,6 @@ public class CustomerDtoWithoutTckn {
                 .name(this.name)
                 .surname(this.surname)
                 .birthDate(this.birthDate)
-                .tckn(this.tckn)
                 .build();
     }
 }

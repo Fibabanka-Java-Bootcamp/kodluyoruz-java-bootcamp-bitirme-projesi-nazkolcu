@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 import org.kodluyoruz.mybank.credit_card.dto.CreditCardDtoReturn;
 import org.kodluyoruz.mybank.credit_card.dto.CreditCardDtoReturnDebt;
+import org.kodluyoruz.mybank.credit_card.dto.CreditCardDtoWithDebt;
 import org.kodluyoruz.mybank.credit_card_transaction.CreditCardTransaction;
 import org.kodluyoruz.mybank.customer.Customer;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -66,6 +67,17 @@ public class CreditCard {
     public CreditCardDtoReturnDebt toCreditCardDtoReturnDebt() {
         return CreditCardDtoReturnDebt.builder()
                 .debt(this.debt)
+                .build();
+    }
+
+    public CreditCardDtoWithDebt toCreditCardDtoWithDebt() {
+        return CreditCardDtoWithDebt.builder()
+                .cardNumber(this.cardNumber)
+                .cardLimit(this.cardLimit)
+                .debt(this.debt)
+                .cvv(this.cvv)
+                .expirationDate(this.expirationDate)
+                .password(this.password)
                 .build();
     }
 }

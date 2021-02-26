@@ -42,7 +42,7 @@ public class DebitCardTransactionController extends TransactionOperations implem
     public DebitCardTransactionDtoReturn transactToS(@RequestBody DebitCardTransactionDto debitCardTransactionDto, @PathVariable("fromcardNumber") Long fromCardNumber) throws JsonProcessingException {
         String toIban = debitCardTransactionDto.getToIban();
         int password = debitCardTransactionDto.getPassword();
-        int cvc = debitCardTransactionDto.getCvc();
+        int cvv = debitCardTransactionDto.getCvv();
         DebitCard fromDebitCard = debitCardRepository.findByCardNumber(fromCardNumber);
 
         double total = 0.0;
@@ -63,7 +63,7 @@ public class DebitCardTransactionController extends TransactionOperations implem
                 DemandDepositAccountBalance fromBalance = fromDemandDepositAccount.getBalance();
 
                 if (password == fromDebitCard.getPassword()) {
-                    if (cvc == fromDebitCard.getCvv()) {
+                    if (cvv == fromDebitCard.getCvv()) {
                         if (fromBalance.getAmount() >= total) {
                             if (checkIban(toIban)) {
                                 DemandDepositAccount toDemandDepositAccount = demandDepositAccountRepository.findByIban(toIban);
@@ -101,7 +101,7 @@ public class DebitCardTransactionController extends TransactionOperations implem
                         } else
                             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The balance of this account is insufficient : " + fromDemandDepositAccount.getIban());
                     } else
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debit Card cvc is wrong : " + fromCardNumber);
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debit Card cvv is wrong : " + fromCardNumber);
 
                 } else
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debit Card password is wrong : " + fromCardNumber);

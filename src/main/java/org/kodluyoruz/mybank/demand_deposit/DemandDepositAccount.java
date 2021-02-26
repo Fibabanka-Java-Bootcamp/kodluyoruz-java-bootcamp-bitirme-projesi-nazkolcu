@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.kodluyoruz.mybank.customer.Customer;
 import org.kodluyoruz.mybank.debit_card.DebitCard;
 import org.kodluyoruz.mybank.demand_deposit.dto.DemandDepositAccountDtoReturn;
+import org.kodluyoruz.mybank.demand_deposit.dto.DemandDepositAccountDtoWithBalance;
 import org.kodluyoruz.mybank.demand_deposit_balance.DemandDepositAccountBalance;
 import org.kodluyoruz.mybank.demand_deposit_transaction.DemandDepositAccountTransaction;
 
@@ -43,5 +44,13 @@ public class DemandDepositAccount {
         return DemandDepositAccountDtoReturn.builder()
                 .iban(this.iban)
                 .build();
+    }
+
+    public DemandDepositAccountDtoWithBalance toDemandDepositAccountDtoWithBalance() {
+        return DemandDepositAccountDtoWithBalance.builder()
+                .iban(this.iban)
+                .amount(this.balance.getAmount())
+                .currency(this.balance.getCurrency()).build();
+
     }
 }

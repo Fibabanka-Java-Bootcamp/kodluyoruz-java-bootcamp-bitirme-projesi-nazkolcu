@@ -21,7 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Validated
 @RestController
 @RequestMapping("/api/transaction/savingaccount")
-public class SavingAccountTransactionController extends TransactionOperations  {
+public class SavingAccountTransactionController extends TransactionOperations {
 
     private final RestTemplate restTemplate_doviz;
     private final DemandDepositAccountRepository demandDepositAccountRepository;
@@ -71,22 +71,22 @@ public class SavingAccountTransactionController extends TransactionOperations  {
                         return savingAccountTransactionService.createSA(fromSavingAccount, toDemandDepositAccount, fromBalance, toBalance, fromTotal, toTotal).toSavingAccountTransactionDtoReturn();
 
                     } else {
-                      RestTemplateRoot root = getSpecificCurrency(restTemplate_doviz, fromCurrency, toCurrency);
+                        RestTemplateRoot root = getSpecificCurrency(restTemplate_doviz, fromCurrency, toCurrency);
                         double coefficient = getCurrencyCoefficient(root, toCurrency);
                         coefficient = adjustDoubleDigit(coefficient, 4);
                         toTotal = total * coefficient;
                         toTotal = adjustDoubleDigit(toTotal, 2);
-                       return savingAccountTransactionService.createSA(fromSavingAccount, toDemandDepositAccount, fromBalance, toBalance, fromTotal, toTotal).toSavingAccountTransactionDtoReturn();
+                        return savingAccountTransactionService.createSA(fromSavingAccount, toDemandDepositAccount, fromBalance, toBalance, fromTotal, toTotal).toSavingAccountTransactionDtoReturn();
 
                     }
                 } else
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The balance of this account is insufficient : " + fromIban);
 
             } else
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Demand Deposit Account not found with this iban : " + fromIban);
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Saving Account not found with this IBAN : " + fromIban);
 
         } else
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Demand Deposit Account not found with this iban : " + toIban);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Demand Deposit Account not found with this IBAN : " + toIban);
 
 
     }

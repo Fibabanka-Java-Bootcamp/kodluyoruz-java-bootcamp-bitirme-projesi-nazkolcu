@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.kodluyoruz.mybank.debit_card.DebitCard;
 import org.kodluyoruz.mybank.debit_card_transaction.dto.DebitCardTransactionDtoReturn;
+import org.kodluyoruz.mybank.debit_card_transaction.dto.DebitCardTransactionDtoStatement;
+import org.kodluyoruz.mybank.demand_deposit_transaction.dto.DemandDepositAccountTransactionDtoStatement;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
@@ -38,5 +40,12 @@ public class DebitCardTransaction {
                 .dateTime(this.dateTime)
                 .total(this.total)
                 .build();
+    }
+    public DebitCardTransactionDtoStatement toDebitCardTransactionDtoStatement() {
+        return DebitCardTransactionDtoStatement.builder()
+                .dateTime(this.dateTime)
+                .total(this.total)
+                .toIban(this.toIban)
+                .flowType(this.flowType).build();
     }
 }

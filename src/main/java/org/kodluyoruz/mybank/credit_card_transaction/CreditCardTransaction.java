@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.kodluyoruz.mybank.credit_card.CreditCard;
+import org.kodluyoruz.mybank.credit_card_transaction.dto.CreditCardTransactionDtoExtract;
 import org.kodluyoruz.mybank.credit_card_transaction.dto.CreditCardTransactionDtoReturn;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -19,7 +20,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "credit_card_transaction")
 public class CreditCardTransaction {
-    @Expose
+
     @Id
     @GeneratedValue
     private Integer id;
@@ -29,7 +30,7 @@ public class CreditCardTransaction {
     @Expose
     private double total;
 
-    @ManyToOne (cascade= {CascadeType.PERSIST, CascadeType.REMOVE})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @JoinColumn(name = "from_cardNumber", referencedColumnName = "cardNumber")
     private CreditCard creditCard;
     @Expose
@@ -43,4 +44,11 @@ public class CreditCardTransaction {
                 .build();
     }
 
+    public CreditCardTransactionDtoExtract toCreditCardTransactionDtoExtract() {
+        return CreditCardTransactionDtoExtract.builder()
+                . dateTime(this.dateTime)
+                .total(this.total)
+                .toIban(this.toIban)
+                .build();
+    }
 }

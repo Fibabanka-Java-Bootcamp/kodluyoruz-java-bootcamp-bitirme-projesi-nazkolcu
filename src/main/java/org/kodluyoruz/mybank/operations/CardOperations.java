@@ -7,8 +7,8 @@ import java.time.LocalDate;
 public class CardOperations implements DoubleOperation, DoubleValidation {
 
     public int cvcGenerator() {
-        int cvc = (100 + (int) (Math.random() * 999));
-        return cvc;
+        int cvv = (100 + (int) (Math.random() * 899));
+        return cvv;
     }
 
     public LocalDate expirationDateGenerator()

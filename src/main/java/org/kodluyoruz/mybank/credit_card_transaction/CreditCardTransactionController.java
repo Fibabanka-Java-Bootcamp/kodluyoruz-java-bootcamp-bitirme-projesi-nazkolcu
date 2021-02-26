@@ -43,7 +43,7 @@ public class CreditCardTransactionController extends TransactionOperations imple
     public CreditCardTransactionDtoReturn transactToS(@RequestBody CreditCardTransactionDto creditCardTransactionDto, @PathVariable("fromcardNumber") Long fromCardNumber) throws JsonProcessingException {
         String toIban = creditCardTransactionDto.getToIban();
         int password = creditCardTransactionDto.getPassword();
-        int cvc = creditCardTransactionDto.getCvc();
+        int cvv = creditCardTransactionDto.getCvv();
         double total = 0.0;
 
 
@@ -61,7 +61,7 @@ public class CreditCardTransactionController extends TransactionOperations imple
             LocalDate now = LocalDate.now();
             if (now.isBefore(fromCreditCard.getExpirationDate())) {
                 if (password == fromCreditCard.getPassword()) {
-                    if (cvc == fromCreditCard.getCvv()) {
+                    if (cvv == fromCreditCard.getCvv()) {
                         double cardLimit = fromCreditCard.getCardLimit();
                         double cardDebt = fromCreditCard.getDebt();
                         double availableCredit = cardLimit - cardDebt;
@@ -103,7 +103,7 @@ public class CreditCardTransactionController extends TransactionOperations imple
                         } else
                             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The balance of this credit card is insufficient : " + fromCreditCard.getCardNumber());
                     } else
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credit Card cvc is wrong : " + fromCardNumber);
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credit Card cvv is wrong : " + fromCardNumber);
 
                 } else
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credit Card password is wrong : " + fromCardNumber);

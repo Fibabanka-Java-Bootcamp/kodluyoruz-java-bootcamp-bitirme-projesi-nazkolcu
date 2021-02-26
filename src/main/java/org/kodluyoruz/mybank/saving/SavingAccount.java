@@ -5,7 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.kodluyoruz.mybank.customer.Customer;
+import org.kodluyoruz.mybank.demand_deposit.dto.DemandDepositAccountDtoWithBalance;
 import org.kodluyoruz.mybank.saving.dto.SavingAccountDtoReturn;
+import org.kodluyoruz.mybank.saving.dto.SavingAccountDtoWithBalance;
 import org.kodluyoruz.mybank.saving_balance.SavingAccountBalance;
 import org.kodluyoruz.mybank.saving_transaction.SavingAccountTransaction;
 
@@ -40,7 +42,13 @@ public class SavingAccount {
                 .iban(this.iban)
                 .build();
     }
+    public SavingAccountDtoWithBalance toSavingAccountDtoWithBalance() {
+        return SavingAccountDtoWithBalance.builder()
+                .iban(this.iban)
+                .amount(this.balance.getAmount())
+                .currency(this.balance.getCurrency()).build();
 
+    }
 
 
 }

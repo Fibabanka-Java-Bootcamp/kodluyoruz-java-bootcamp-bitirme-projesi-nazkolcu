@@ -11,5 +11,5 @@ public class DebitCardTransactionDto {
     private String toIban;
     private String total;
     private int password;
-    private int cvc;
+    private int cvv;
 }

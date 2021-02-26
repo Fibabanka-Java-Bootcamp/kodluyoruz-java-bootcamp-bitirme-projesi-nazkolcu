@@ -8,6 +8,7 @@ import org.hibernate.annotations.GenericGenerator;
 import org.kodluyoruz.mybank.credit_card.CreditCard;
 import org.kodluyoruz.mybank.customer.dto.CustomerDto;
 import org.kodluyoruz.mybank.customer.dto.CustomerDtoReturn;
+import org.kodluyoruz.mybank.customer.dto.CustomerDtoWithCustomerNumber;
 import org.kodluyoruz.mybank.demand_deposit.DemandDepositAccount;
 import org.kodluyoruz.mybank.saving.SavingAccount;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -79,6 +80,16 @@ public class Customer {
                 .customerNumber(this.customerNumber)
                 .name(this.name)
                 .surname(this.surname)
+                .build();
+    }
+
+    public CustomerDtoWithCustomerNumber customerDtoWithCustomerNumber() {
+        return CustomerDtoWithCustomerNumber.builder()
+                .customerNumber(this.customerNumber)
+                .tckn(this.tckn)
+                .name(this.name)
+                .surname(this.surname)
+                .birthDate(this.birthDate)
                 .build();
     }
 }

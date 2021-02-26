@@ -3,21 +3,25 @@ package org.kodluyoruz.mybank.customer;
 import org.kodluyoruz.mybank.credit_card.CreditCard;
 import org.kodluyoruz.mybank.customer.dto.CustomerDto;
 import org.kodluyoruz.mybank.customer.dto.CustomerDtoReturn;
+import org.kodluyoruz.mybank.customer.dto.CustomerDtoWithCustomerNumber;
 import org.kodluyoruz.mybank.customer.dto.CustomerDtoWithoutTckn;
 import org.kodluyoruz.mybank.demand_deposit.DemandDepositAccount;
 import org.kodluyoruz.mybank.demand_deposit.DemandDepositAccountRepository;
 import org.kodluyoruz.mybank.saving.SavingAccount;
 import org.kodluyoruz.mybank.saving.SavingAccountRepository;
 import org.kodluyoruz.mybank.validations.CustomerValidation;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Validated
 @RestController
@@ -122,5 +126,16 @@ public class CustomerController implements CustomerValidation {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found with customer number :" + customerNumber);
     }
 
+    @GetMapping(params = {"page", "size"})
+    public List<CustomerDtoWithCustomerNumber> list(@Min(value = 0) @RequestParam("page") int page, @RequestParam("size") int size) {
+        return customerService.list(PageRequest.of(page, size)).stream()
+                .map(Customer::customerDtoWithCustomerNumber)
+                .collect(Collectors.toList());
+    }
 
+
+    @GetMapping("/{customerNumber}")
+    public CustomerDtoWithCustomerNumber get(@PathVariable("customerNumber") Long customerNumber) {
+        return customerService.get(customerNumber).get().customerDtoWithCustomerNumber();
+    }
 }

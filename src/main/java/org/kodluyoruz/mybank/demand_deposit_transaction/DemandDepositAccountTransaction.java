@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.kodluyoruz.mybank.demand_deposit.DemandDepositAccount;
 import org.kodluyoruz.mybank.demand_deposit_transaction.dto.DemandDepositAccountTransactionDtoReturn;
+import org.kodluyoruz.mybank.demand_deposit_transaction.dto.DemandDepositAccountTransactionDtoStatement;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
@@ -26,7 +27,7 @@ public class DemandDepositAccountTransaction {
 
     private double total;
 
-    @ManyToOne (cascade= {CascadeType.PERSIST, CascadeType.REMOVE})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @JoinColumn(name = "from_iban", referencedColumnName = "iban")
     private DemandDepositAccount demandDepositAccount;
 
@@ -39,6 +40,14 @@ public class DemandDepositAccountTransaction {
                 .dateTime(this.dateTime)
                 .total(this.total)
                 .build();
+    }
+
+    public DemandDepositAccountTransactionDtoStatement toDemandDepositAccountTransactionDtoStatement() {
+        return DemandDepositAccountTransactionDtoStatement.builder()
+                .dateTime(this.dateTime)
+                .total(this.total)
+                .toIban(this.toIban)
+                .flowType(this.flowType).build();
     }
 
 
