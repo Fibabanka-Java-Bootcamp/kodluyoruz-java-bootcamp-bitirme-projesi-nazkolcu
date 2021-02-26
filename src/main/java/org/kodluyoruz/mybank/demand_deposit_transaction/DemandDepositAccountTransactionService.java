@@ -89,7 +89,7 @@ public class DemandDepositAccountTransactionService extends TransactionOperation
         CreditCardTransaction transaction2 = createCreditCardTransaction(toCreditCard, now, debtTotal, fromDemandDepositAccount.getIban(), "inflow");
 
         fromBalance.setAmount(calculateOutflow(fromBalance.getAmount(), debtTotal));
-        toCreditCard.setDebt(calculateInflow(toCreditCard.getDebt(), debtTotal));
+        toCreditCard.setDebt(calculateOutflow(toCreditCard.getDebt(), debtTotal));
 
         demandDepositAccountBalanceRepository.save(fromBalance);
         creditCardRepository.save(toCreditCard);
